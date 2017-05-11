@@ -14,16 +14,16 @@ Restart=on-failure
 Environment=TOMCAT_JAVA_HOME={{ ansible_local.java.general.java_home }}
 Environment=CATALINA_HOME={{ tomcat_env_catalina_home }}
 {% if item.service_name|default(tomcat_default_service_name)|search('@') %}
-EnvironmentFile=-{{ item.path|default(tomcat_default_instance_path) }}/catalina/%i/.systemd.conf
+EnvironmentFile=-{{ item.path|default(tomcat_default_instance_path) }}/%i/.systemd.conf
 {% else %}
-EnvironmentFile=-{{ item.path|default(tomcat_default_instance_path) }}/catalina/{{ item.name }}/.systemd.conf
+EnvironmentFile=-{{ item.path|default(tomcat_default_instance_path) }}/{{ item.name }}/.systemd.conf
 {% endif %}
 
 ExecStart={{ ansible_local.java.general.java_home }}/bin/java \
 {% if item.service_name|default(tomcat_default_service_name)|search('@') %}
-  -Djava.util.logging.config.file={{ item.path|default(tomcat_default_instance_path) }}/catalina/%i/conf/logging.properties \
+  -Djava.util.logging.config.file={{ item.path|default(tomcat_default_instance_path) }}/%i/conf/logging.properties \
 {% else %}
-  -Djava.util.logging.config.file={{ item.path|default(tomcat_default_instance_path) }}/catalina/{{ item.name }}/conf/logging.properties \
+  -Djava.util.logging.config.file={{ item.path|default(tomcat_default_instance_path) }}/{{ item.name }}/conf/logging.properties \
 {% endif %}
   -Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager \
 {% if item.prefer_urandom|default(tomcat_default_prefer_urandom) %}
@@ -32,14 +32,14 @@ ExecStart={{ ansible_local.java.general.java_home }}/bin/java \
   -Djava.endorsed.dirs={{ tomcat_env_catalina_home }}/endorsed \
   -Dcatalina.home={{ tomcat_env_catalina_home }} \
 {% if item.service_name|default(tomcat_default_service_name)|search('@') %}
-  -Dcatalina.base={{ item.path|default(tomcat_default_instance_path) }}/catalina/%i \
+  -Dcatalina.base={{ item.path|default(tomcat_default_instance_path) }}/%i \
 {% else %}
-  -Dcatalina.base={{ item.path|default(tomcat_default_instance_path) }}/catalina/{{ item.name }} \
+  -Dcatalina.base={{ item.path|default(tomcat_default_instance_path) }}/{{ item.name }} \
 {% endif %}
 {% if item.service_name|default(tomcat_default_service_name)|search('@') %}
-  -Djava.io.tmpdir={{ item.path|default(tomcat_default_instance_path) }}/catalina/%i/temp \
+  -Djava.io.tmpdir={{ item.path|default(tomcat_default_instance_path) }}/%i/temp \
 {% else %}
-  -Djava.io.tmpdir={{ item.path|default(tomcat_default_instance_path) }}/catalina/{{ item.name }}/temp \
+  -Djava.io.tmpdir={{ item.path|default(tomcat_default_instance_path) }}/{{ item.name }}/temp \
 {% endif %}
 {% if item.prefer_ipv4|default(tomcat_default_prefer_ipv4) %}
   -Djava.net.preferIPv4Stack=true \
@@ -49,9 +49,9 @@ ExecStart={{ ansible_local.java.general.java_home }}/bin/java \
 
 ExecStop={{ ansible_local.java.general.java_home }}/bin/java \
 {% if item.service_name|default(tomcat_default_service_name)|search('@') %}
-  -Djava.util.logging.config.file={{ item.path|default(tomcat_default_instance_path) }}/catalina/%i/conf/logging.properties \
+  -Djava.util.logging.config.file={{ item.path|default(tomcat_default_instance_path) }}/%i/conf/logging.properties \
 {% else %}
-  -Djava.util.logging.config.file={{ item.path|default(tomcat_default_instance_path) }}/catalina/{{ item.name }}/conf/logging.properties \
+  -Djava.util.logging.config.file={{ item.path|default(tomcat_default_instance_path) }}/{{ item.name }}/conf/logging.properties \
 {% endif %}
   -Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager \
 {% if item.prefer_urandom|default(tomcat_default_prefer_urandom) %}
@@ -60,14 +60,14 @@ ExecStop={{ ansible_local.java.general.java_home }}/bin/java \
   -Djava.endorsed.dirs={{ tomcat_env_catalina_home }}/endorsed \
   -Dcatalina.home={{ tomcat_env_catalina_home }} \
 {% if item.service_name|default(tomcat_default_service_name)|search('@') %}
-  -Dcatalina.base={{ item.path|default(tomcat_default_instance_path) }}/catalina/%i \
+  -Dcatalina.base={{ item.path|default(tomcat_default_instance_path) }}/%i \
 {% else %}
-  -Dcatalina.base={{ item.path|default(tomcat_default_instance_path) }}/catalina/{{ item.name }} \
+  -Dcatalina.base={{ item.path|default(tomcat_default_instance_path) }}/{{ item.name }} \
 {% endif %}
 {% if item.service_name|default(tomcat_default_service_name)|search('@') %}
-  -Djava.io.tmpdir={{ item.path|default(tomcat_default_instance_path) }}/catalina/%i/temp \
+  -Djava.io.tmpdir={{ item.path|default(tomcat_default_instance_path) }}/%i/temp \
 {% else %}
-  -Djava.io.tmpdir={{ item.path|default(tomcat_default_instance_path) }}/catalina/{{ item.name }}/temp \
+  -Djava.io.tmpdir={{ item.path|default(tomcat_default_instance_path) }}/{{ item.name }}/temp \
 {% endif %}
 {% if item.prefer_ipv4|default(tomcat_default_prefer_ipv4) %}
   -Djava.net.preferIPv4Stack=true \

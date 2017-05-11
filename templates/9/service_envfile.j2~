@@ -1,0 +1,82 @@
+# {{ ansible_managed }}
+#
+# System-wide configuration file for tomcat9 services
+# This will be sourced by tomcat9 and any secondary service
+# Values will be overridden by service-specific configuration
+# files in /etc/sysconfig
+#
+# Use this one to change default values for all services
+# Change the service specific ones to affect only one service
+# (see, for instance, /etc/sysconfig/tomcat9)
+#
+
+# Where your java installation lives
+#JAVA_HOME="{{ ansible_local.java.general.java_home }}"
+
+# Where your tomcat installation lives
+CATALINA_BASE="{{ item.path|default(tomcat_default_instance_path) }}/{{ item.name }}"
+CATALINA_HOME="{{ tomcat_env_catalina_home }}"
+JASPER_HOME="{{ tomcat_env_catalina_home }}"
+CATALINA_TMPDIR="{{ item.path|default(tomcat_default_instance_path) }}/{{ item.name }}/temp"
+TOMCAT_LOG="{{ item.path|default(tomcat_default_instance_path) }}/{{ item.name }}/logs/{{ item.name }}-initd.log"
+
+# You can pass some parameters to java here if you wish to
+#JAVA_OPTS="-Xminf0.1 -Xmaxf0.3"
+
+# Use JAVA_OPTS to set java.library.path for libtcnative.so
+#JAVA_OPTS="-Djava.library.path=/usr/lib"
+
+# Cannot resolve user database reference - naming-factory-dbcp
+# the real problem is a cnfe that is avoided by configuring
+# the -Djavax.sql.DataSource.Factory. This fixes the rpm install.
+JAVA_OPTS="-Djavax.sql.DataSource.Factory=org.apache.commons.dbcp.BasicDataSourceFactory"
+
+# What user should run tomcat
+TOMCAT_USER="{{ item.user|default(tomcat_default_user_name) }}"
+TOMACT_GROUP="{{ item.group|default(tomcat_default_user_group ) }}"
+#TOMCAT_GROUP="${TOMCAT_GROUP:-`id -gn $TOMCAT_USER`}"
+
+# You can change your tomcat locale here
+#LANG="en_US"
+
+# Run tomcat under the Java Security Manager
+SECURITY_MANAGER="false"
+
+# Time to wait in seconds, before killing process
+SHUTDOWN_WAIT="30"
+
+# Time to wait in seconds, before killing process
+SHUTDOWN_WAIT="30"
+
+# Whether to annoy the user with "attempting to shut down" messages or not
+SHUTDOWN_VERBOSE=false
+
+# Set the TOMCAT_PID location
+CATALINA_PID="{{ item.path|default(tomcat_default_instance_path) }}/{{ item.name }}/{{ item.name }}.pid"
+CATALINA_LOCK="{{ item.path|default(tomcat_default_instance_path) }}/{{ item.name }}/{{ item.name }}.lock"
+
+# Connector port is 8080 for this tomcat9 instance
+#CONNECTOR_PORT="8080"
+
+# If you wish to further customize your tomcat environment,
+# put your own definitions here
+# (i.e. LD_LIBRARY_PATH for some jdbc drivers)
+
+# CATALINA_OPTS
+CATALINA_OPTS="{{ item.catalina_opts|default(tomcat_default_catalina_opts) }}"
+{% if item.prefer_ipv4|default(tomcat_default_prefer_ipv4) %}
+CATALINA_OPTS="${CATALINA_OPTS} -Djava.net.preferIPv4Stack=true"
+{% endif %}
+
+{% if item.jmxremote is defined %}
+# Enable JMX for OEM 12c
+CATALINA_OPTS="$CATALINA_OPTS -Dcom.sun.management.jmxremote"
+CATALINA_OPTS="$CATALINA_OPTS -Dcom.sun.management.jmxremote.port={{ item.jmxremote_port }}"
+CATALINA_OPTS="$CATALINA_OPTS -Dcom.sun.management.jmxremote.ssl=false"
+CATALINA_OPTS="$CATALINA_OPTS -Dcom.sun.management.jmxremote.authenticate=true"
+CATALINA_OPTS="$CATALINA_OPTS -Dcom.sun.management.jmxremote.password.file="{{ item.path|default(tomcat_default_instance_path) }}/conf/jmxremote.password"
+CATALINA_OPTS="$CATALINA_OPTS -Dcom.sun.management.jmxremote.access.file="{{ item.path|default(tomcat_default_instance_path) }}/conf/jmxremote.access"
+{% endif %}
+
+# User arguments for JVM
+#USER_MEM_ARGS="-Xms1024m -Xmx1024m -XX:PermSize=512m -XX:MaxPermSize=512m -Dhttp.proxyHost=proxy.host.local -Dhttp.proxyPort=3128 -Dhttp.nonProxyHosts=non.proxy.host.local"
