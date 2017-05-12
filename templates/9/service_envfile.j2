@@ -74,8 +74,8 @@ CATALINA_OPTS="$CATALINA_OPTS -Dcom.sun.management.jmxremote"
 CATALINA_OPTS="$CATALINA_OPTS -Dcom.sun.management.jmxremote.port={{ item.jmxremote_port }}"
 CATALINA_OPTS="$CATALINA_OPTS -Dcom.sun.management.jmxremote.ssl=false"
 CATALINA_OPTS="$CATALINA_OPTS -Dcom.sun.management.jmxremote.authenticate=true"
-CATALINA_OPTS="$CATALINA_OPTS -Dcom.sun.management.jmxremote.password.file="{{ item.path|default(tomcat_default_instance_path) }}/{{ item.name }}/conf/jmxremote.password"
-CATALINA_OPTS="$CATALINA_OPTS -Dcom.sun.management.jmxremote.access.file="{{ item.path|default(tomcat_default_instance_path) }}/{{ item.name }}/conf/jmxremote.access"
+CATALINA_OPTS="$CATALINA_OPTS -Dcom.sun.management.jmxremote.password.file={{ item.path|default(tomcat_default_instance_path) }}/{{ item.name }}/conf/jmxremote.password"
+CATALINA_OPTS="$CATALINA_OPTS -Dcom.sun.management.jmxremote.access.file={{ item.path|default(tomcat_default_instance_path) }}/{{ item.name }}/conf/jmxremote.access"
 {% endif %}
 
 # User arguments for JVM
