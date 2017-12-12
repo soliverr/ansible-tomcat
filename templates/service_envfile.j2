@@ -29,11 +29,11 @@ TOMCAT_LOG="{{ item.path|default(tomcat_default_instance_path) }}/{{ item.name }
 # Cannot resolve user database reference - naming-factory-dbcp
 # the real problem is a cnfe that is avoided by configuring
 # the -Djavax.sql.DataSource.Factory. This fixes the rpm install.
-JAVA_OPTS="-Djavax.sql.DataSource.Factory=org.apache.commons.dbcp.BasicDataSourceFactory"
+JAVA_OPTS="-Djavax.sql.DataSource.Factory=org.apache.commons.dbcp.BasicDataSourceFactory -Dfile.encoding=UTF-8 -Dlogback.configurationFile={{ item.path|default(tomcat_default_instance_path) }}/{{ item.name }}/conf/logback.xml"
 
 # What user should run tomcat
 TOMCAT_USER="{{ item.user|default(tomcat_default_user_name) }}"
-TOMACT_GROUP="{{ item.group|default(tomcat_default_user_group ) }}"
+TOMCAT_GROUP="{{ item.group|default(tomcat_default_user_group ) }}"
 #TOMCAT_GROUP="${TOMCAT_GROUP:-`id -gn $TOMCAT_USER`}"
 
 # You can change your tomcat locale here
