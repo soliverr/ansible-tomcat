@@ -51,8 +51,13 @@
 # Manage system services
 - name: Configure service management
   tags: tomcat
-  when: ansible_local.util.init.system is defined
+  when: ansible_local.util.init.system is defined and not tomcat_force_sysvinit
   include_vars: "service/{{ ansible_local.util.init.system }}.yml"
+
+- name: Forcing SysVinit service management
+  tags: tomcat
+  when: ansible_local.util.init.system is defined and tomcat_force_sysvinit
+  include_vars: "service/sysvinit.yml"
 
 - name: Include assets persistency tasks
   tags: tomcat
@@ -120,9 +125,11 @@
     group: "{{ tomcat_default_user_group }}"
     creates: "{{ tomcat_env_catalina_home }}/lib"
 
+# FIXME: conf dir is symlink to /etc/tomcat9
 - name: Install instance directories
   tags: tomcat
   become: true
+  ignore_errors: yes
   with_nested:
     - "{{ tomcat_instances }}"
     - "{{ tomcat_instance_dirs }}"
@@ -168,7 +175,7 @@
   with_items: "{{ tomcat_instances }}"
   register: tomcat_registered_install_server_xml
   template:
-    src: "{{ item.server_xml_template|default(tomcat_version_major~'/'~tomcat_default_server_xml_template|default(tomcat_default_server_xml_template)) }}"
+    src: "{{ item.server_xml_template|default(tomcat_default_server_xml_template) }}"
     dest: "{{ item.path|default(tomcat_default_instance_path) }}/{{ item.name }}/conf/server.xml"
     owner: "{{ item.user|default(tomcat_default_user_name) }}"
     group: "{{ item.group|default(tomcat_default_user_group) }}"
@@ -180,8 +187,20 @@
   with_items: "{{ tomcat_instances }}"
   register: tomcat_registered_install_web_xml
   template:
-    src: "{{ item.web_xml_template|default(tomcat_version_major~'/'~tomcat_default_web_xml_template|default(tomcat_default_web_xml_template)) }}"
+    src: "{{ item.web_xml_template|default(tomcat_default_web_xml_template) }}"
     dest: "{{ item.path|default(tomcat_default_instance_path) }}/{{ item.name }}/conf/web.xml"
+    owner: "{{ item.user|default(tomcat_default_user_name) }}"
+    group: "{{ item.group|default(tomcat_default_user_group) }}"
+    mode: 0640
+
+- name: Install instance logback.xml
+  tags: tomcat
+  become: true
+  with_items: "{{ tomcat_instances }}"
+  register: tomcat_registered_install_logback_xml
+  template:
+    src: "{{ item.logback_xml_template|default(tomcat_default_logback_xml_template) }}"
+    dest: "{{ item.path|default(tomcat_default_instance_path) }}/{{ item.name }}/conf/logback.xml"
     owner: "{{ item.user|default(tomcat_default_user_name) }}"
     group: "{{ item.group|default(tomcat_default_user_group) }}"
     mode: 0640
@@ -231,9 +250,13 @@
   when:
     - ansible_local.util.init.system is defined
     - ansible_local.util.init.system == 'systemd'
+    - not tomcat_force_sysvinit
   with_items: "{{ tomcat_instances }}"
   register: tomcat_registered_install_instance_environment_files
   template:
+    # FIXME: where to put config file
+    #src: "{{ item.envfile_template|default(tomcat_default_envfile_template) }}"
+    #dest: "{{ tomcat_sysconfig_dir }}/{{ item.name }}"
     src: "service_systemd_envfile.j2"
     dest: "{{ item.path|default(tomcat_default_instance_path) }}/{{ item.name }}/.systemd.conf"
     owner: "{{ item.user|default(tomcat_default_user_name) }}"
@@ -246,11 +269,11 @@
   become: true
   when:
     - ansible_local.util.init.system is defined
-    - ansible_local.util.init.system == 'sysvinit'
+    - ansible_local.util.init.system == 'sysvinit'or tomcat_force_sysvinit
   with_items: "{{ tomcat_instances }}"
   register: tomcat_registered_install_instance_environment_files
   template:
-    src: "{{ item.envfile_template|default(tomcat_version_major~'/'~tomcat_default_envfile_template|default(tomcat_default_envfile_template)) }}"
+    src: "{{ item.envfile_template|default(tomcat_default_envfile_template) }}"
     dest: "{{ tomcat_sysconfig_dir }}/{{ item.name }}"
     owner: "{{ item.user|default(tomcat_default_user_name) }}"
     group: "{{ item.group|default(tomcat_default_user_group) }}"
@@ -274,7 +297,7 @@
   register: tomcat_registered_install_tomcat_service
   when: tomcat_fact_is_not_initial_check_mode
   template:
-    src: "{{ item.service_template|default(tomcat_version_major~'/'~tomcat_default_service_template|default(tomcat_default_service_template)) }}"
+    src: "{{ item.service_template|default(tomcat_default_service_template) }}"
     dest: "{{ tomcat_service_dir }}/{{ item.service_file|default(tomcat_default_service_file) }}"
     owner: 0
     group: 0
@@ -288,6 +311,7 @@
     - tomcat_registered_install_tomcat_service.changed
     - ansible_local.util.init.system is defined
     - ansible_local.util.init.system == 'systemd'
+    - not tomcat_force_sysvinit
   become: true
   failed_when: false
   changed_when: false
@@ -304,7 +328,7 @@
     owner: "{{ tomcat_default_user_name }}"
     group: "{{ tomcat_default_user_group }}"
     mode: u=rwX,g=rwX,o=rX
-    recurse: yes
+    recurse: no
 
 - name: Move config files for instances into /etc/tomcat{{ tomcat_version_major }} system directory
   tags: tomcat
@@ -347,6 +371,7 @@
   with_items:
     - "{{ (tomcat_registered_install_server_xml|default({})).results|default({}) }}"
     - "{{ (tomcat_registered_install_web_xml|default({})).results|default({}) }}"
+    - "{{ (tomcat_registered_install_logback_xml|default({})).results|default({}) }}"
     - "{{ (tomcat_registered_install_instance_environment_files|default({})).results|default({}) }}"
     - "{{ (tomcat_registered_install_tomcat_service|default({})).results|default({}) }}"
   when: tomcat_fact_is_not_initial_check_mode
